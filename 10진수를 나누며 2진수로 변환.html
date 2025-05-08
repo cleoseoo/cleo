@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>나눗셈으로 2진수 만들기</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    input {
+      padding: 5px;
+      width: 50px;
+      text-align: center;
+      font-size: 16px;
+    }
+    input.correct { background-color: #4CAF50; color: white; }
+    input.incorrect { background-color: #E53935; color: white; }
+    .row { margin: 8px; display: flex; justify-content: center; gap: 15px; align-items: center; }
+    .label { width: 80px; }
+    #finalBinary { font-size: 20px; margin-top: 20px; font-weight: bold; }
+    button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>🔢 나눗셈으로 2진수 만들기</h1>
+  <p>10진수를 2로 나누며 몫과 나머지를 직접 써넣어보세요!</p>
+
+  <div>
+    <label>10진수 입력: </label>
+    <input type="number" id="decimalInput" min="1" />
+    <button onclick="startGame()">게임 시작</button>
+  </div>
+
+  <div id="gameArea"></div>
+  <div id="finalBinary"></div>
+
+  <script>
+    let steps = [];
+
+    function startGame() {
+      const input = parseInt(document.getElementById("decimalInput").value);
+      if (isNaN(input) || input < 1) {
+        alert("1 이상의 숫자를 입력하세요.");
+        return;
+      }
+
+      // 나눗셈 과정 만들기
+      steps = [];
+      let current = input;
+      while (current > 0) {
+        const quotient = Math.floor(current / 2);
+        const remainder = current % 2;
+        steps.push({ original: current, quotient, remainder });
+        current = quotient;
+      }
+
+      renderGame();
+    }
+
+    function renderGame() {
+      const area = document.getElementById("gameArea");
+      area.innerHTML = '';
+
+      steps.forEach((step, idx) => {
+        const row = document.createElement("div");
+        row.className = "row";
+
+        const label = document.createElement("span");
+        label.className = "label";
+        label.innerText = `${step.original} ÷ 2 =`;
+
+        const quotientInput = document.createElement("input");
+        quotientInput.placeholder = "몫";
+        const remainderInput = document.createElement("input");
+        remainderInput.placeholder = "나머지";
+
+        // 입력 시 정답 체크
+        quotientInput.addEventListener("input", () => {
+          checkInput(quotientInput, step.quotient);
+          updateFinalBinary();
+        });
+
+        remainderInput.addEventListener("input", () => {
+          checkInput(remainderInput, step.remainder);
+          updateFinalBinary();
+        });
+
+        step.quotientInput = quotientInput;
+        step.remainderInput = remainderInput;
+
+        row.appendChild(label);
+        row.appendChild(quotientInput);
+        row.appendChild(document.createTextNode(" ... "));
+        row.appendChild(remainderInput);
+
+        area.appendChild(row);
+      });
+
+      document.getElementById("finalBinary").innerText = "";
+    }
+
+    function checkInput(inputEl, correctVal) {
+      const val = inputEl.value.trim();
+      if (val === "") {
+        inputEl.classList.remove("correct", "incorrect");
+        return;
+      }
+      const num = parseInt(val);
+      if (num === correctVal) {
+        inputEl.classList.add("correct");
+        inputEl.classList.remove("incorrect");
+      } else {
+        inputEl.classList.add("incorrect");
+        inputEl.classList.remove("correct");
+      }
+    }
+
+    function updateFinalBinary() {
+      const allCorrect = steps.every(step =>
+        step.quotientInput.classList.contains("correct") &&
+        step.remainderInput.classList.contains("correct")
+      );
+
+      if (allCorrect) {
+        const binary = steps.map(s => s.remainder).reverse().join('');
+        document.getElementById("finalBinary").innerText = `🎉 정답! 2진수는 ${binary} 입니다.`;
+      } else {
+        document.getElementById("finalBinary").innerText = "";
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>2진수 → 10진수 변환 게임</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    .step {
+      margin: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
+    input.step-input {
+      width: 80px;
+      padding: 5px;
+      font-size: 16px;
+      text-align: center;
+    }
+    input.correct {
+      background-color: #4CAF50;
+      color: white;
+    }
+    input.incorrect {
+      background-color: #E53935;
+      color: white;
+    }
+    #finalResult {
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+    #binaryDisplay {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>💡 2진수 → 10진수 변환 게임</h1>
+  <p>제시된 2진수를 10진수로 변환하는 과정을 단계별로 채워보세요!</p>
+
+  <div id="binaryDisplay"></div>
+  <div id="stepsContainer"></div>
+  
+  <button onclick="checkAnswers()">제출</button>
+  <button onclick="createGame()">새 게임</button>
+
+  <div id="finalResult"></div>
+
+  <script>
+    let binaryStr = ""; // 제시할 2진수 문자열
+    let steps = [];     // 각 자릿수의 정보: { exponent, bit, expected, inputElement }
+
+    // 게임 생성: 무작위 길이(3~6자리) 2진수 생성 및 단계 구성
+    function createGame() {
+      steps = [];
+      document.getElementById("finalResult").innerText = "";
+      
+      // 3~6자리 무작위 2진수 생성
+      const length = Math.floor(Math.random() * 4) + 3;
+      binaryStr = "";
+      for (let i = 0; i < length; i++) {
+        binaryStr += Math.random() < 0.5 ? "0" : "1";
+      }
+      // 첫 자리가 0이면 안되게 (양의 정수) – 만약 0이면 1로 강제
+      if (binaryStr[0] === "0") {
+        binaryStr = "1" + binaryStr.slice(1);
+      }
+      
+      document.getElementById("binaryDisplay").innerText = `주어진 2진수: ${binaryStr}`;
+      
+      // 각 자리의 정보 구성 (왼쪽 자리가 최대 지수)
+      const container = document.getElementById("stepsContainer");
+      container.innerHTML = "";
+      const n = binaryStr.length;
+      for (let i = 0; i < n; i++) {
+        // 왼쪽에서 i번째 자릿수의 지수 = (n - 1 - i)
+        const exponent = n - 1 - i;
+        const bit = binaryStr[i];
+        // 계산: 해당 자리의 곱셈 결과
+        const expected = parseInt(bit) * Math.pow(2, exponent);
+        
+        // 각 단계별 줄 구성
+        const stepDiv = document.createElement("div");
+        stepDiv.className = "step";
+        
+        const label = document.createElement("span");
+        label.innerHTML = `2<sup>${exponent}</sup> × ${bit} = `;
+        
+        const input = document.createElement("input");
+        input.type = "number";
+        input.className = "step-input";
+        input.placeholder = "?";
+        
+        // 저장: 각 단계의 정보를 나중에 검증할 수 있도록 steps 배열에 추가
+        steps.push({ exponent, bit, expected, inputElement: input });
+        
+        stepDiv.appendChild(label);
+        stepDiv.appendChild(input);
+        container.appendChild(stepDiv);
+      }
+    }
+    
+    // 제출 시 각 단계 정답 확인 및 최종 합산 계산
+    function checkAnswers() {
+      let isAllCorrect = true;
+      let total = 0;
+      
+      // 각 단계별 검증
+      steps.forEach(step => {
+        const userAnswer = parseInt(step.inputElement.value);
+        
+        // 초기 상태로 클래스 제거
+        step.inputElement.classList.remove("correct", "incorrect");
+        
+        if (userAnswer === step.expected) {
+          step.inputElement.classList.add("correct");
+        } else {
+          step.inputElement.classList.add("incorrect");
+          isAllCorrect = false;
+        }
+        total += step.expected;
+      });
+      
+      const resultDiv = document.getElementById("finalResult");
+      if (isAllCorrect) {
+        resultDiv.innerText = `✅ 모든 단계 정답! 최종 10진수 값은 ${total}입니다.`;
+      } else {
+        resultDiv.innerText = `❌ 일부 단계가 틀렸습니다. 최종 10진수 값은 ${total} (각 단계의 결과를 확인해보세요).`;
+      }
+    }
+    
+    // 초기 게임 시작
+    createGame();
+  </script>
+</body>
+</html>
